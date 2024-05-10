@@ -1,10 +1,12 @@
 package main
 
 import (
-	"Elections_Patiala/db"
+	"Elections_Patiala/pkg/db"
+	"Elections_Patiala/pkg/handlers"
 	"context"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 	"github.com/rs/cors"
 	"log"
 	"net/http"
@@ -14,13 +16,19 @@ import (
 	"time"
 )
 
+var store = sessions.NewCookieStore([]byte("2eb7ddef6411bca4205d73dbfcbf9115fcf2ec43"))
+
 func main() {
 	db.InitDatabase()
 
-	router := mux.NewRouter()
+	r := mux.NewRouter()
+	r.Use(sessionMiddleware)
+	r.HandleFunc("/", handlers.HandleIndex).Methods("GET")
+	r.HandleFunc("/admin/login", handlers.HandlerAdminLogin).Methods("GET")
+	//r.HandleFunc("/admin/login",handlers.)
 
 	corsMiddlerware := cors.Default()
-	handler := corsMiddlerware.Handler(router)
+	handler := corsMiddlerware.Handler(r)
 
 	server := &http.Server{Addr: ":8080", Handler: handler}
 	go func() {
@@ -43,4 +51,15 @@ func WaitForTerminationSignal(server *http.Server) {
 		log.Fatalf("Server shutdown failed: %v\n", err)
 	}
 	log.Println("Server stopped gracefully")
+}
+
+func sessionMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session, err := store.Get(r, "session-name")
+		if err != nil {
+			log.Println("Error getting session:", err)
+		}
+		defer session.Save(r, w)
+		next.ServeHTTP(w, r)
+	})
 }
