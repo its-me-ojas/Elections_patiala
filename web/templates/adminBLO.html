@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLO Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .queue-container {
+            margin-bottom: 20px;
+        }
+        .queue-label {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #666;
+        }
+        .queue-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="number"] {
+            width: 100px;
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>BLO Dashboard</h1>
+    <div class="queue-container">
+        <label for="currentQueue" class="queue-label">Current Queue:</label>
+        <span id="currentQueue" class="queue-value">10</span>
+    </div>
+    <form id="updateQueueForm">
+        <label for="newQueue" class="queue-label">Update Queue:</label>
+        <input type="number" id="newQueue" name="newQueue" min="0" required>
+        <button type="submit">Update</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('updateQueueForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const newQueueValue = document.getElementById('newQueue').value;
+        document.getElementById('currentQueue').textContent = newQueueValue;
+        // You can add AJAX request here to send the updated queue value to the server
+    });
+</script>
+</body>
+</html>

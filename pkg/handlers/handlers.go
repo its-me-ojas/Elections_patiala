@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"Elections_Patiala/pkg/db"
 	"github.com/gorilla/sessions"
 	"log"
 	"net/http"
@@ -40,9 +41,49 @@ func HandlerAdminLogin(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//func HandleAuthenticate(w http.ResponseWriter,r *http.Request){
-//	username:=r.FormValue("username")
-//	password:=r.FormValue("password")
-//
-//	sno, err:=pkg
-//}
+func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	usertype := r.FormValue("usertype")
+
+	id, err := db.AuthenticateAdmin(username, password, usertype)
+	if err != nil {
+		log.Println("Authentication error: ", err)
+		http.Error(w, "Authentication failed", http.StatusUnauthorized)
+		return
+	}
+	session, _ := store.Get(r, "session-name")
+	if id == "" || id == "0" {
+		session.Values["error"] = "Incorrect username or password"
+		session.Save(r, w)
+		http.Redirect(w, r, "/admin/login", http.StatusExpectationFailed)
+		return
+	} else {
+		session.Values["authenticated"] = true
+		session.Values["usertype"] = usertype
+		if usertype == "aro" {
+			session.Values["cid"] = id
+		} else {
+			session.Values["bid"] = id
+		}
+		session.Save(r, w)
+		http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
+	}
+}
+
+func HanldeAdminDashboard(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "session-name")
+	if err != nil || session.Values["authenticated"] != true {
+		http.Redirect(w, r, "/admin/login", http.StatusUnauthorized)
+		return
+	}
+
+	if session.Values["usertype"] == "blo" {
+		bid, ok := session.Values["bid"].(string)
+		if !ok {
+			http.Error(w, "Invalid Session Data", http.StatusInternalServerError)
+		}
+
+	}
+
+}

@@ -25,7 +25,8 @@ func main() {
 	r.Use(sessionMiddleware)
 	r.HandleFunc("/", handlers.HandleIndex).Methods("GET")
 	r.HandleFunc("/admin/login", handlers.HandlerAdminLogin).Methods("GET")
-	//r.HandleFunc("/admin/login",handlers.)
+	r.HandleFunc("/admin/login", handlers.HandleAuthenticate).Methods("POST")
+	r.HandleFunc("/admin/dashboard", handlers.HanldeAdminDashboard).Methods("GET")
 
 	corsMiddlerware := cors.Default()
 	handler := corsMiddlerware.Handler(r)
