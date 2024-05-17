@@ -3,12 +3,13 @@ package db
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
-	"os"
 )
 
 var pollingStationCollection *mongo.Collection
@@ -36,43 +37,46 @@ func InitDatabase() {
 	displayDataConnection = client.Database("election_patiala").Collection("display_data")
 }
 
-func AuthenticateAdmin(username, password, usertype string) (string, error) {
-	var userAro ARO
-	var userBlo BLO
-	if usertype == "aro" {
-		filter := bson.M{"user": usertype, "aro_name": username, "pass": password}
-		err := usersCollection.FindOne(context.Background(), filter).Decode(&userAro)
-		if err != nil {
-			return "", err
-		}
-		return userAro.CID, nil
-	} else if usertype == "blo" {
-		filter := bson.M{"user": usertype, "blo_name": username, "pass": password}
-		err := usersCollection.FindOne(context.Background(), filter).Decode(&userBlo)
-		if err != nil {
-			return "", err
-		}
-		return userBlo.BID, nil
-	} else {
-		return "", nil
-	}
+func AuthenticateAdmin(contact, password string) (map[string]string, error) {
+	var user User
+	filter := bson.M{"contact": contact, "pass": password}
+	err := usersCollection.FindOne(context.Background(), filter).Decode(&user)
+	if err != nil {
+        return nil, err
+    }
+	result := make(map[string]string)
+    result["usertype"] = user.UserType
+
+    switch user.UserType {
+    case "aro":
+        result["cid"] = user.CID
+    case "blo", "ps":
+        result["cid"] = user.CID
+        result["bid"] = user.BID
+    default:
+        return nil, nil
+    }
+
+    return result, nil
 }
 
 func GetLiveTrafficByBoothID(boothID string) (int, error) {
-	var liveTraffic = 0
+	var liveTraffic struct {
+		Counter int `bson:"counter"`
+	}
 
 	filter := bson.M{"bid": boothID}
 	result := pollingStationCollection.FindOne(context.Background(), filter)
 	if result.Err() != nil {
 		if result.Err() == mongo.ErrNoDocuments {
-			return liveTraffic, fmt.Errorf("no live traffic data found for the specific BOOTH ID : %v", boothID)
+			return liveTraffic.Counter, fmt.Errorf("no live traffic data found for the specific BOOTH ID : %v", boothID)
 		}
-		return liveTraffic, fmt.Errorf("error finding live traffic data %v", result.Err())
+		return liveTraffic.Counter, fmt.Errorf("error finding live traffic data %v", result.Err())
 	}
 
 	if err := result.Decode(&liveTraffic); err != nil {
-		return liveTraffic, fmt.Errorf("error decoding live traffic data %v", err)
+		return liveTraffic.Counter, fmt.Errorf("error decoding live traffic data %v", err)
 	}
 
-	return liveTraffic, nil
+	return liveTraffic.Counter, nil
 }

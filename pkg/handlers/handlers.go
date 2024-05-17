@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"Elections_Patiala/pkg/db"
-	"github.com/gorilla/sessions"
 	"log"
 	"net/http"
 	"text/template"
+
+	"github.com/gorilla/sessions"
 )
 
 var store = sessions.NewCookieStore([]byte("2eb7ddef6411bca4205d73dbfcbf9115fcf2ec43"))
@@ -42,34 +43,39 @@ func HandlerAdminLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
-	username := r.FormValue("username")
-	password := r.FormValue("password")
-	usertype := r.FormValue("usertype")
+    contact := r.FormValue("contact")
+    password := r.FormValue("password")
 
-	id, err := db.AuthenticateAdmin(username, password, usertype)
-	if err != nil {
-		log.Println("Authentication error: ", err)
-		http.Error(w, "Authentication failed", http.StatusUnauthorized)
-		return
-	}
-	session, _ := store.Get(r, "session-name")
-	if id == "" || id == "0" {
-		session.Values["error"] = "Incorrect username or password"
-		session.Save(r, w)
-		http.Redirect(w, r, "/admin/login", http.StatusExpectationFailed)
-		return
-	} else {
-		session.Values["authenticated"] = true
-		session.Values["usertype"] = usertype
-		if usertype == "aro" {
-			session.Values["cid"] = id
-		} else {
-			session.Values["bid"] = id
-		}
-		session.Save(r, w)
-		http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
-	}
+    userInfo, err := db.AuthenticateAdmin(contact, password)
+    if err != nil {
+        log.Println("Authentication error: ", err)
+        http.Error(w, "Authentication failed", http.StatusUnauthorized)
+        return
+    }
+
+    if userInfo == nil {
+        session, _ := store.Get(r, "session-name")
+        session.Values["error"] = "Incorrect username or password"
+        session.Save(r, w)
+        http.Redirect(w, r, "/admin/login", http.StatusExpectationFailed)
+        return
+    }
+
+    session, _ := store.Get(r, "session-name")
+    session.Values["authenticated"] = true
+    session.Values["usertype"] = userInfo["usertype"]
+
+    if userInfo["usertype"] == "aro" {
+        session.Values["cid"] = userInfo["cid"]
+    } else {
+        session.Values["cid"] = userInfo["cid"]
+        session.Values["bid"] = userInfo["bid"]
+    }
+
+    session.Save(r, w)
+    http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
 }
+
 
 func HanldeAdminDashboard(w http.ResponseWriter, r *http.Request) {
 	session, err := store.Get(r, "session-name")
@@ -83,7 +89,17 @@ func HanldeAdminDashboard(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			http.Error(w, "Invalid Session Data", http.StatusInternalServerError)
 		}
-
+		liveTraffic, err := db.GetLiveTrafficByBoothID(bid)
+		if err != nil {
+			log.Printf("Failed to retrieve polling station data: %v", err)
+			http.Error(w, "Failed to retrieve polling station data", http.StatusInternalServerError)
+			return
+		}
+		tmpl := template.Must(template.ParseFiles("web/templates/adminBLO.html"))
+		err = tmpl.Execute(w, liveTraffic)
+		if err != nil {
+			log.Println("Failed to render the template")
+		}
 	}
 
 }
