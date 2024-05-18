@@ -12,8 +12,17 @@ import (
 var store = sessions.NewCookieStore([]byte("2eb7ddef6411bca4205d73dbfcbf9115fcf2ec43"))
 
 func HandleIndex(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("web/templates/index.html"))
-	tmpl.Execute(w, map[string]interface{}{})
+	session, err := store.Get(r, "session-name")
+	if err != nil {
+		log.Println("Error getting session", err)
+		return
+	}
+	if session.Values["authenticated"] == true {
+		http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
+		return
+	}
+	http.Redirect(w, r, "/admin/login", http.StatusFound)
+
 }
 
 func HandlerAdminLogin(w http.ResponseWriter, r *http.Request) {

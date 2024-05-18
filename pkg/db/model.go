@@ -2,17 +2,15 @@ package db
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
-
-
 type User struct {
-	ID         primitive.ObjectID `bson:"id,omitempty"`
-	UserType   string             `bson:"user"`
-	CID        string             `bson:"cid,omitempty"`
-	BID        string             `bson:"bid,omitempty"`
-	Name    string             `bson:"blo_name"`
-	BoothName  string             `bson:"booth_name"`
-	Contact string             `bson:"contact"`
-	Password   string             `bson:"pass"`
+	ID        primitive.ObjectID `bson:"id,omitempty"`
+	UserType  string             `bson:"user"`
+	CID       string             `bson:"cid,omitempty"`
+	BID       string             `bson:"bid,omitempty"`
+	Name      string             `bson:"blo_name"`
+	BoothName string             `bson:"booth_name"`
+	Contact   string             `bson:"contact"`
+	Password  string             `bson:"pass"`
 }
 
 type DisplayData struct {
