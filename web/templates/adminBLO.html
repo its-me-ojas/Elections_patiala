@@ -64,17 +64,43 @@
             </button>
           </div>
         </form>
+        <form action="/admin/logout" method="POST">
+          <button type="submit" class="px-4 py-2 bg-red-500 text-white font-semibold rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-300">
+            Logout
+          </button>
+        </form>
       </div>
     </div>
 
     <script>
       document
-        .getElementById("updateQueueForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          const newQueueValue = document.getElementById("newQueue").value;
-          document.getElementById("currentQueue").textContent = newQueueValue;
-        });
+              .getElementById("updateQueueForm")
+              .addEventListener("submit", function (e) {
+                e.preventDefault();
+                const newQueueValue = document.getElementById("newQueue").value;
+                document.getElementById("currentQueue").textContent = newQueueValue;
+
+                // Make a POST request to /admin/counterupdate
+                fetch('/admin/counterupdate', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                  },
+                  body: `counter=${newQueueValue}`,
+                })
+                        .then(response => {
+                          if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                          }
+                          return response.text();
+                        })
+                        .then(data => {
+                          console.log('Success:', data);
+                        })
+                        .catch((error) => {
+                          console.error('Error:', error);
+                        });
+              });
     </script>
   </body>
 </html>

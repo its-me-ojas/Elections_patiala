@@ -17,6 +17,16 @@ var usersCollection *mongo.Collection
 var votersReqCollection *mongo.Collection
 var displayDataConnection *mongo.Collection
 
+type Voter struct {
+	ID      string `bson:"_id,omitempty"`
+	CID     string `bson:"cid"`
+	BID     string `bson:"bid"`
+	Name    string `bson:"name"`
+	Contact string `bson:"contact"`
+	Message string `bson:"message"`
+	Status  string `bson:"status"`
+}
+
 func InitDatabase() {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -42,27 +52,27 @@ func AuthenticateAdmin(contact, password string) (map[string]string, error) {
 	filter := bson.M{"contact": contact, "pass": password}
 	err := usersCollection.FindOne(context.Background(), filter).Decode(&user)
 	if err != nil {
-        return nil, err
-    }
+		return nil, err
+	}
 	result := make(map[string]string)
-    result["usertype"] = user.UserType
+	result["usertype"] = user.UserType
 
-    switch user.UserType {
-    case "aro":
-        result["cid"] = user.CID
-    case "blo", "ps":
-        result["cid"] = user.CID
-        result["bid"] = user.BID
-    default:
-        return nil, nil
-    }
+	switch user.UserType {
+	case "aro":
+		result["cid"] = user.CID
+	case "blo", "ps":
+		result["cid"] = user.CID
+		result["bid"] = user.BID
+	default:
+		return nil, nil
+	}
 
-    return result, nil
+	return result, nil
 }
 
-func GetLiveTrafficByBoothID(boothID string) (int, error) {
+func GetLiveTrafficByBoothID(boothID string) (string, error) {
 	var liveTraffic struct {
-		Counter int `bson:"counter"`
+		Counter string `bson:"counter"`
 	}
 
 	filter := bson.M{"bid": boothID}
@@ -79,4 +89,40 @@ func GetLiveTrafficByBoothID(boothID string) (int, error) {
 	}
 
 	return liveTraffic.Counter, nil
+}
+
+func UpdateQueue(boothID string, counter int) error {
+	filter := bson.M{"bid": boothID}
+	update := bson.M{"$set": bson.M{"counter": counter}}
+	_, err := pollingStationCollection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetAllVoters(cid string) ([]Voter, error) {
+	var voters []Voter
+
+	filter := bson.M{"cid": cid}
+	cursor, err := votersReqCollection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	for cursor.Next(context.Background()) {
+		var voter Voter
+		err := cursor.Decode(&voter)
+		if err != nil {
+			return nil, err
+		}
+		voters = append(voters, voter)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return voters, nil
 }
