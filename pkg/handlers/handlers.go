@@ -110,6 +110,7 @@ func HanldeAdminDashboard(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Failed to render the template")
 		}
+
 	} // else {
 	//	cid, ok := session.Values["cid"].(string)
 	//	if !ok {
@@ -141,7 +142,7 @@ func HanldeLogout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin/login", http.StatusFound)
 }
 
-func CounterUpdate(w http.ResponseWriter, r *http.Request) {
+func HanldeCounterUpdate(w http.ResponseWriter, r *http.Request) {
 	// Parse the form data
 	err := r.ParseForm()
 	if err != nil {
@@ -224,7 +225,12 @@ func HandleGetAllVoters(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid session data", http.StatusInternalServerError)
 		return
 	}
-	voters, err := db.GetAllVoters(cid)
+	bid, ok := session.Values["bid"].(string)
+	if !ok {
+		http.Error(w, "Invalid session data", http.StatusInternalServerError)
+		return
+	}
+	voters, err := db.GetAllVoters(cid, bid)
 	if err != nil {
 		http.Error(w, "Failed to get voters", http.StatusInternalServerError)
 		return
@@ -232,4 +238,56 @@ func HandleGetAllVoters(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(voters)
+}
+
+func HandleGetQueue(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "session-name")
+	if err != nil || session.Values["authenticated"] != true {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	bid, ok := session.Values["bid"].(string)
+	if !ok {
+		http.Error(w, "Invalid session data", http.StatusInternalServerError)
+		return
+	}
+	cid, ok := session.Values["cid"].(string)
+	if !ok {
+		http.Error(w, "Invalid session data", http.StatusInternalServerError)
+		return
+	}
+	queue, err := db.GetQueue(cid, bid)
+	if err != nil {
+		http.Error(w, "Failed to get queue", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(queue)
+}
+
+func HandleGetBoothData(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "session-name")
+	if err != nil || session.Values["authenticated"] != true {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	cid, ok := session.Values["cid"].(string)
+	if !ok {
+		http.Error(w, "Invalid session data", http.StatusInternalServerError)
+		return
+	}
+	bid, ok := session.Values["bid"].(string)
+	if !ok {
+		http.Error(w, "Invalid session data", http.StatusInternalServerError)
+		return
+	}
+	booth, err := db.GetBooth(cid, bid)
+	if err != nil {
+		http.Error(w, "Failed to get booth data", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(booth)
 }

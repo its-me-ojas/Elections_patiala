@@ -27,6 +27,44 @@ type Voter struct {
 	Status  string `bson:"status"`
 }
 
+type Counter struct {
+	Counter string `bson:"counter"`
+}
+
+type Booth struct {
+	ID                            string `bson:"_id,omitempty"`
+	CID                           string `bson:"cid"`
+	BID                           string `bson:"bid"`
+	BoothName                     string `bson:"booth_name"`
+	BloName                       string `bson:"blo_name"`
+	BloContact                    string `bson:"blo_contact"`
+	GeoCoordinates                string `bson:"geo_coordinates"`
+	SectorOfficerName             string `bson:"sector_officer_name"`
+	SectorOfficerContact          string `bson:"sector_officer_contact"`
+	AssistantSectorOfficerName    string `bson:"assistant_sector_officer_name"`
+	AssistantSectorOfficerContact string `bson:"assistant_sector_officer_contact"`
+	LocationInchargeName          string `bson:"location_incharge_name"`
+	LocationInchargeContact       string `bson:"location_incharge_contact"`
+	AroName                       string `bson:"aro_name"`
+	AroContact                    string `bson:"aro_contact"`
+	DspName                       string `bson:"dsp_name"`
+	DspContact                    string `bson:"dsp_contact"`
+	ShoName                       string `bson:"sho_name"`
+	ShoContact                    string `bson:"sho_contact"`
+	ChownkiInchargeName           string `bson:"chownki_incharge_name"`
+	ChownkiInchargeContact        string `bson:"chownki_incharge_contact"`
+	MedicalOfficerName            string `bson:"medical_officer_name"`
+	MedicalOfficerContact         string `bson:"medical_officer_contact"`
+	SmoName                       string `bson:"smo_name"`
+	SmoContact                    string `bson:"smo_contact"`
+	AmbulanceContact              string `bson:"ambulance_contact"`
+	FireContact                   string `bson:"fire_contact"`
+	HeatwaveName                  string `bson:"heatwave_name"`
+	HeatwaveContact               string `bson:"heatwave_contact"`
+	Counter                       string `bson:"counter"`
+	LastUpdated                   string `bson:"last_updated"`
+}
+
 func InitDatabase() {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -101,10 +139,10 @@ func UpdateQueue(boothID string, counter int) error {
 	return nil
 }
 
-func GetAllVoters(cid string) ([]Voter, error) {
+func GetAllVoters(cid, bid string) ([]Voter, error) {
 	var voters []Voter
 
-	filter := bson.M{"cid": cid}
+	filter := bson.M{"cid": cid, "bid": bid}
 	cursor, err := votersReqCollection.Find(context.Background(), filter)
 	if err != nil {
 		return nil, err
@@ -125,4 +163,29 @@ func GetAllVoters(cid string) ([]Voter, error) {
 	}
 
 	return voters, nil
+}
+
+func GetQueue(cid, bid string) (string, error) {
+	var counter Counter
+
+	filter := bson.M{"bid": bid, "cid": cid}
+	err := pollingStationCollection.FindOne(context.Background(), filter).Decode(&counter)
+	if err != nil {
+		return "", err
+	}
+
+	return counter.Counter, nil
+}
+
+func GetBooth(cid, bid string) (Booth, error) {
+	var booth Booth
+
+	filter := bson.M{"cid": cid, "bid": bid}
+	err := pollingStationCollection.FindOne(context.Background(), filter).Decode(&booth)
+	if err != nil {
+		fmt.Println(err)
+		return Booth{}, err
+	}
+
+	return booth, nil
 }
