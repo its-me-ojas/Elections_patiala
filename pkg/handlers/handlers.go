@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
 	"text/template"
 
 	"github.com/gorilla/sessions"
@@ -151,15 +150,7 @@ func HanldeCounterUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the counter value from the form
-	peopleInQueueStr := r.FormValue("counter")
-
-	// Convert string to integer
-	peopleInQueue, err := strconv.Atoi(peopleInQueueStr)
-	if err != nil {
-		log.Println("Error converting string to integer: ", err)
-		http.Error(w, "Invalid counter value", http.StatusBadRequest)
-		return
-	}
+	peopleInQueue := r.FormValue("counter")
 
 	session, err := store.Get(r, "session-name")
 	if err != nil || session.Values["authenticated"] != true {
