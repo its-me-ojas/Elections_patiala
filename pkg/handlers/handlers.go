@@ -104,6 +104,7 @@ func HanldeAdminDashboard(w http.ResponseWriter, r *http.Request) {
 
 		booth, err := db.GetBooth(cid, bid)
 		display_data, err := db.GetDisplayData(cid, bid)
+		voter_req_data, err := db.GetAllVoters(cid)
 		if err != nil {
 			log.Printf("Failed to retrieve polling station data: %v", err)
 			http.Error(w, "Failed to retrieve polling station data", http.StatusInternalServerError)
@@ -111,8 +112,9 @@ func HanldeAdminDashboard(w http.ResponseWriter, r *http.Request) {
 		}
 		tmpl := template.Must(template.ParseFiles("web/templates/adminBLO.html"))
 		err = tmpl.Execute(w, map[string]interface{}{
-			"Booth":       booth,
-			"DisplayData": display_data,
+			"Booth":        booth,
+			"DisplayData":  display_data,
+			"VoterReqData": voter_req_data,
 		})
 		if err != nil {
 			log.Println("Failed to render the template")
