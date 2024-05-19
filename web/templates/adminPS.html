@@ -26,24 +26,35 @@
             </div>
 
             <div id="polling-station-content" class="mb-6">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">
-                    Polling Duties Information
-                </h2>
-                <p class="text-gray-600"><strong>Booth Name:</strong>
-                    <span>{{ .Booth.Bid }}</span>
-                </p>
-                <p class="text-gray-600"><strong>Booth Number:</strong>
-                    <span>{{ .Booth.BoothName }}</span>
-                </p>
-                <p class="text-gray-600"><strong>BLO Name:</strong>
-                    <span></span> {{.Booth.BloName }}</span>
-                </p>
-                <p class="text-gray-600"><strong>BLO Contact:</strong>
-                    <span>{{ .Booth.BloContact }}</span>
-                </p>
-                <p class="text-gray-600"><strong>Sector Officer Name:</strong>
-                    <span>{{ .Booth.SectorOfficerName}}</span>
-                </p>
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Polling Duties Information</h2>
+                <div class="flex flex-wrap">
+                    <div class="w-full md:w-1/2 text-left">
+                        <p class="text-gray-600"><strong>Booth Number:</strong> <span>{{ .Booth.Bid }}</span></p>
+                        <p class="text-gray-600"><strong>Booth Name:</strong> <span>{{ .Booth.BoothName }}</span></p>
+                        <p class="text-gray-600"><strong>Booth Level Officer Name:</strong> <span>{{ .Booth.BloName }}</span></p>
+                        <p class="text-gray-600"><strong>Booth Level Officer Contact:</strong> <span>{{ .Booth.BloContact }}</span></p>
+                        <p class="text-gray-600"><strong>Sector Officer Name:</strong> <span>{{ .Booth.SectorOfficerName }}</span></p>
+                        <p class="text-gray-600"><strong>Sector Officer Contact:</strong> <span>{{ .Booth.SectorOfficerContact }}</span></p>
+                        <p class="text-gray-600"><strong>Assistant Sector Officer Name:</strong> <span>{{ .Booth.AssistantSectorOfficerName }}</span></p>
+                        <p class="text-gray-600"><strong>Assistant Sector Officer Contact:</strong> <span>{{ .Booth.AssistantSectorOfficerContact }}</span></p>
+                        <p class="text-gray-600"><strong>Location Incharge Name:</strong> <span>{{ .Booth.LocationInchargeName }}</span></p>
+                        <p class="text-gray-600"><strong>Location Incharge Contact:</strong> <span>{{ .Booth.LocationInchargeContact }}</span></p>
+                    </div>
+                    <div class="w-full md:w-1/2 text-left">
+                        <p class="text-gray-600"><strong>ARO Name:</strong> <span>{{ .Booth.AroName }}</span></p>
+                        <p class="text-gray-600"><strong>ARO Contact:</strong> <span>{{ .Booth.AroContact }}</span></p>
+                        <p class="text-gray-600"><strong>DSP Name:</strong> <span>{{ .Booth.DspName }}</span></p>
+                        <p class="text-gray-600"><strong>DSP Contact:</strong> <span>{{ .Booth.DspContact }}</span></p>
+                        <p class="text-gray-600"><strong>SHO Name:</strong> <span>{{ .Booth.ShoName }}</span></p>
+                        <p class="text-gray-600"><strong>SHO Contact:</strong> <span>{{ .Booth.ShoContact }}</span></p>
+                        <p class="text-gray-600"><strong>Chowki Incharge Name:</strong> <span>{{ .Booth.ChowkiInchargeName }}</span></p>
+                        <p class="text-gray-600"><strong>Chowki Incharge Contact:</strong> <span>{{ .Booth.ChowkiInchargeContact }}</span></p>
+                        <p class="text-gray-600"><strong>Medical Officer Name:</strong> <span>{{ .Booth.MedicalOfficerName }}</span></p>
+                        <p class="text-gray-600"><strong>Medical Officer Contact:</strong> <span>{{ .Booth.MedicalOfficerContact }}</span></p>
+                        <p class="text-gray-600"><strong>SMO Name:</strong> <span>{{ .Booth.SmoName }}</span></p>
+                        <p class="text-gray-600"><strong>SMO Contact:</strong> <span>{{ .Booth.SmoContact }}</span></p>
+                    </div>
+                </div>
             </div>
 
             <div id="polling-staff-content" class="mb-6" style="display: none;">
@@ -64,6 +75,18 @@
                 </p>
                 <p class="text-gray-600"><strong>DriverName:</strong>
                     <span>{{ .DisplayData.DriverName}}</span>
+                </p>
+                <p class="text-gray-600"><strong>School Incharge:</strong>
+                    <span>{{ .DisplayData.SchoolIncharge}}</span>
+                </p>
+                <p class="text-gray-600"><strong>School Incharge Number:</strong>
+                    <span>{{ .DisplayData.SchoolInchargeNumber}}</span>
+                </p>
+                <p class="text-gray-600"><strong>Housing Incharge:</strong>
+                    <span>{{ .DisplayData.HousingIncharge}}</span>
+                </p>
+                <p class="text-gray-600"><strong>Housing Incharge Number:</strong>
+                    <span>{{ .DisplayData.HousingInchargeNumber}}</span>
                 </p>
                 <p class="text-gray-600 mt-4"><strong>Polling Staff:</strong></p>
                 <ul class="text-gray-600 list-disc list-inside">
