@@ -204,42 +204,6 @@ func HanldeCounterUpdate(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//func VoterReqUpdate(w http.ResponseWriter, r *http.Request) {
-//	// Parse the form data
-//	err := r.ParseForm()
-//	if err != nil {
-//		http.Error(w, "Invalid form data", http.StatusBadRequest)
-//		return
-//	}
-//
-//	// Get the counter value from the form
-//	voterReqStr := r.FormValue("voterReq")
-//
-//	// Convert string to integer
-//	voterReq, err := strconv.Atoi(voterReqStr)
-//	if err != nil {
-//		log.Println("Error converting string to integer: ", err)
-//		http.Error(w, "Invalid counter value", http.StatusBadRequest)
-//		return
-//	}
-//
-//	session, err := store.Get(r, "session-name")
-//	if err != nil || session.Values["authenticated"] != true {
-//		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-//		return
-//	}
-//
-//	bid, ok := session.Values["bid"].(string)
-//	if !ok {
-//		http.Error(w, "Invalid session data", http.StatusInternalServerError)
-//		return
-//	}
-//
-//	db.UpdateVoterReq(bid, voterReq)
-//	http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
-//
-//}
-
 func HandleGetAllVoters(w http.ResponseWriter, r *http.Request) {
 	session, err := store.Get(r, "session-name")
 	if err != nil || session.Values["authenticated"] != true {
@@ -316,4 +280,29 @@ func HandleGetBoothData(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(booth)
+}
+
+func HanldeVoterReqStatus(w http.ResponseWriter, r *http.Request) {
+	// Parse the form data
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+	objectID := r.FormValue("objectID")
+
+	session, err := store.Get(r, "session-name")
+	if err != nil || session.Values["authenticated"] != true {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	fmt.Println("First")
+	err = db.UpdateVoterRequest(objectID)
+	if err != nil {
+		http.Error(w, "Failed to get voter request", http.StatusInternalServerError)
+		return
+	}
+	fmt.Println("Second")
+
+	http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
 }

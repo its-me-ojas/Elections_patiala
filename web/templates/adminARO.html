@@ -33,9 +33,16 @@
                 {{ range .VoterReqData }}
                 {{ if eq .Status "pending" }}
                 <div class="bg-white p-4 rounded shadow">
-                    <h3 class="font-bold">{{ .Name }}</h3>
-                    <p>{{ .Contact }}</p>
-                    <p>{{ .Message }}</p>
+                    <h3 class="font-bold"><strong>Name: </strong>{{ .Name }}</h3>
+                    <p><strong>Contact: </strong>{{ .Contact }}</p>
+                    <p><strong>Message: </strong>{{ .Message }}</p>
+                    <form id="myForm" action="/admin/voter_req" method="POST">
+                        <input type="hidden" name="objectID" id="hiddenInput" value="">
+                        <button type="submit" onclick="document.getElementById('hiddenInput').value='{{.ID}}'"
+                                class="px-4 py-2 bg-green-500 text-white font-semibold rounded-md shadow-md hover:bg-green-600 focus:outline-none focus:ring focus:ring-green-300"
+                        >Mark As Resolved
+                        </button>
+                    </form>
                 </div>
                 {{ end }}
                 {{ end }}
@@ -48,9 +55,9 @@
                 {{ range .VoterReqData }}
                 {{ if eq .Status "resolved" }}
                 <div class="bg-white p-4 rounded shadow">
-                    <h3 class="font-bold">{{ .Name }}</h3>
-                    <p>{{ .Contact }}</p>
-                    <p>{{ .Message }}</p>
+                    <h3 class="font-bold"><strong>Name: </strong>{{ .Name }}</h3>
+                    <p><strong>Contact: </strong>{{ .Contact }}</p>
+                    <p><strong>Message: </strong>{{ .Message }}</p>
                 </div>
                 {{ end }}
                 {{ end }}

@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"os"
 	"time"
@@ -160,4 +161,21 @@ func GetDisplayData(cid, bid string) (DisplayData, error) {
 	}
 
 	return display_data, nil
+}
+
+func UpdateVoterRequest(objectID string) error {
+	objID, err := primitive.ObjectIDFromHex(objectID)
+	if err != nil {
+		log.Println("Error converting string to ObjectID", err)
+		return err
+	}
+
+	filter := bson.M{"_id": objID}
+	update := bson.M{"$set": bson.M{"status": "resolved"}}
+	_, err = votersReqCollection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		log.Println("Error updating voter request", err)
+		return err
+	}
+	return nil
 }
