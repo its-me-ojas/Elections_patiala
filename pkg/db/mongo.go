@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,10 +17,6 @@ var pollingStationCollection *mongo.Collection
 var usersCollection *mongo.Collection
 var votersReqCollection *mongo.Collection
 var displayDataConnection *mongo.Collection
-
-
-
-
 
 func InitDatabase() {
 	err := godotenv.Load(".env")
@@ -87,10 +84,17 @@ func GetLiveTrafficByBoothID(boothID string) (string, error) {
 	return liveTraffic.Counter, nil
 }
 
-func UpdateQueue(cid,bid , counter string) error {
+func UpdateQueue(cid, bid, counter string) error {
 	filter := bson.M{"bid": bid, "cid": cid}
-	update := bson.M{"$set": bson.M{"counter": counter}}
-	_, err := pollingStationCollection.UpdateOne(context.Background(), filter, update)
+	istLocation, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		log.Println("Error loading IST location:", err)
+		return err
+	}
+	currentTimeIST := time.Now().In(istLocation)
+
+	update := bson.M{"$set": bson.M{"counter": counter, "last_updated": currentTimeIST.Format("1504")}}
+	_, err = pollingStationCollection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return err
 	}

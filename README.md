@@ -1,0 +1,2 @@
+- [X] update counter time
+- [ ] update voter req status

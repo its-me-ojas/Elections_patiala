@@ -143,24 +143,25 @@ func HanldeAdminDashboard(w http.ResponseWriter, r *http.Request) {
 			log.Println("Failed to render the template")
 		}
 
+	} else {
+		cid, ok := session.Values["cid"].(string)
+		if !ok {
+			http.Error(w, "Invalid Session Data", http.StatusInternalServerError)
+		}
+		voterReqData, err := db.GetAllVoters(cid)
+		if err != nil {
+			log.Printf("Failed to retrieve polling station data: %v", err)
+			http.Error(w, "Failed to retrieve polling station data", http.StatusInternalServerError)
+			return
+		}
+		tmpl := template.Must(template.ParseFiles("web/templates/adminARO.html"))
+		err = tmpl.Execute(w, map[string]interface{}{
+			"VoterReqData": voterReqData,
+		})
+		if err != nil {
+			log.Println("Failed to render the template")
+		}
 	}
-	// else {
-	//	cid, ok := session.Values["cid"].(string)
-	//	if !ok {
-	//		http.Error(w, "Invalid Session Data", http.StatusInternalServerError)
-	//	}
-	//	liveTraffic, err := db.GetLiveTrafficByConstituencyID(cid)
-	//	if err != nil {
-	//		log.Printf("Failed to retrieve polling station data: %v", err)
-	//		http.Error(w, "Failed to retrieve polling station data", http.StatusInternalServerError)
-	//		return
-	//	}
-	//	tmpl := template.Must(template.ParseFiles("web/templates/adminARO.html"))
-	//	err = tmpl.Execute(w, liveTraffic)
-	//	if err != nil {
-	//		log.Println("Failed to render the template")
-	//	}
-	//}
 
 }
 
