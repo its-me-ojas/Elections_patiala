@@ -3,11 +3,11 @@ package handlers
 import (
 	"Elections_Patiala/pkg/db"
 	"encoding/json"
+	"fmt"
+	"github.com/gorilla/sessions"
 	"log"
 	"net/http"
 	"text/template"
-	"fmt"
-	"github.com/gorilla/sessions"
 )
 
 var store = sessions.NewCookieStore([]byte("2eb7ddef6411bca4205d73dbfcbf9115fcf2ec43"))
@@ -60,7 +60,7 @@ func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
 	userInfo, err := db.AuthenticateAdmin(contact, password)
 	if err != nil {
 		log.Println("Authentication error: ", err)
-		userInfo=nil
+		userInfo = nil
 	}
 
 	if userInfo == nil {
@@ -96,14 +96,14 @@ func HanldeAdminDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if session.Values["usertype"] == "blo" {
-		cid,ok := session.Values["cid"].(string)
+		cid, ok := session.Values["cid"].(string)
 		bid, ok := session.Values["bid"].(string)
 		if !ok {
 			http.Error(w, "Invalid Session Data", http.StatusInternalServerError)
 		}
 
-		booth, err := db.GetBooth(cid,bid)
-		display_data,err:=db.GetDisplayData(cid,bid)
+		booth, err := db.GetBooth(cid, bid)
+		display_data, err := db.GetDisplayData(cid, bid)
 		if err != nil {
 			log.Printf("Failed to retrieve polling station data: %v", err)
 			http.Error(w, "Failed to retrieve polling station data", http.StatusInternalServerError)
@@ -111,22 +111,22 @@ func HanldeAdminDashboard(w http.ResponseWriter, r *http.Request) {
 		}
 		tmpl := template.Must(template.ParseFiles("web/templates/adminBLO.html"))
 		err = tmpl.Execute(w, map[string]interface{}{
-			"Booth":      booth,
+			"Booth":       booth,
 			"DisplayData": display_data,
 		})
 		if err != nil {
 			log.Println("Failed to render the template")
 		}
 
-	}	else if session.Values["usertype"] == "ps" {
-		cid,ok := session.Values["cid"].(string)
+	} else if session.Values["usertype"] == "ps" {
+		cid, ok := session.Values["cid"].(string)
 		bid, ok := session.Values["bid"].(string)
 		if !ok {
 			http.Error(w, "Invalid Session Data", http.StatusInternalServerError)
 		}
 
-		booth, err := db.GetBooth(cid,bid)
-		display_data,err:=db.GetDisplayData(cid,bid)
+		booth, err := db.GetBooth(cid, bid)
+		display_data, err := db.GetDisplayData(cid, bid)
 		if err != nil {
 			log.Printf("Failed to retrieve polling station data: %v", err)
 			http.Error(w, "Failed to retrieve polling station data", http.StatusInternalServerError)
@@ -134,7 +134,7 @@ func HanldeAdminDashboard(w http.ResponseWriter, r *http.Request) {
 		}
 		tmpl := template.Must(template.ParseFiles("web/templates/adminPS.html"))
 		err = tmpl.Execute(w, map[string]interface{}{
-			"Booth":      booth,
+			"Booth":       booth,
 			"DisplayData": display_data,
 		})
 		if err != nil {
@@ -196,7 +196,7 @@ func HanldeCounterUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.UpdateQueue(cid,bid, peopleInQueue)
+	db.UpdateQueue(cid, bid, peopleInQueue)
 	http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
 
 }
