@@ -87,7 +87,7 @@ func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
 }
 
-func HanldeAdminDashboard(w http.ResponseWriter, r *http.Request) {
+func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Dashboard Opening")
 
 	session, err := store.Get(r, "session-name")
@@ -165,7 +165,7 @@ func HanldeAdminDashboard(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func HanldeLogout(w http.ResponseWriter, r *http.Request) {
+func HandleLogout(w http.ResponseWriter, r *http.Request) {
 	session, err := store.Get(r, "session-name")
 	if err != nil {
 		log.Println("Error getting session", err)
@@ -176,7 +176,7 @@ func HanldeLogout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin/login", http.StatusFound)
 }
 
-func HanldeCounterUpdate(w http.ResponseWriter, r *http.Request) {
+func HandleCounterUpdate(w http.ResponseWriter, r *http.Request) {
 	// Parse the form data
 	err := r.ParseForm()
 	if err != nil {
@@ -282,7 +282,7 @@ func HandleGetBoothData(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(booth)
 }
 
-func HanldeVoterReqStatus(w http.ResponseWriter, r *http.Request) {
+func HandleVoterReqStatus(w http.ResponseWriter, r *http.Request) {
 	// Parse the form data
 	err := r.ParseForm()
 	if err != nil {
