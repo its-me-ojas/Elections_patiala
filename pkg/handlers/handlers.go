@@ -2,8 +2,6 @@ package handlers
 
 import (
 	"Elections_Patiala/pkg/db"
-	"encoding/json"
-	"fmt"
 	"github.com/gorilla/sessions"
 	"log"
 	"net/http"
@@ -53,7 +51,6 @@ func HandlerAdminLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Handling Auth")
 	contact := r.FormValue("contact")
 	password := r.FormValue("password")
 
@@ -88,7 +85,6 @@ func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Dashboard Opening")
 
 	session, err := store.Get(r, "session-name")
 	if err != nil || session.Values["authenticated"] != true {
@@ -99,40 +95,61 @@ func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 		cid, ok := session.Values["cid"].(string)
 		bid, ok := session.Values["bid"].(string)
 		if !ok {
-			http.Error(w, "Invalid Session Data", http.StatusInternalServerError)
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Invalid Session Data. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
 		}
 
 		booth, err := db.GetBooth(cid, bid)
-		display_data, err := db.GetDisplayData(cid, bid)
-		voter_req_data, err := db.GetAllVoters(cid)
 		if err != nil {
-			log.Printf("Failed to retrieve polling station data: %v", err)
-			http.Error(w, "Failed to retrieve polling station data", http.StatusInternalServerError)
-			return
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Failed to recieve Polling Station Data. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
+		}
+		display_data, err := db.GetDisplayData(cid, bid)
+		if err != nil {
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Failed to recieve Election Duty Data. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
 		}
 		tmpl := template.Must(template.ParseFiles("web/templates/adminBLO.html"))
 		err = tmpl.Execute(w, map[string]interface{}{
 			"Booth":        booth,
 			"DisplayData":  display_data,
-			"VoterReqData": voter_req_data,
 		})
 		if err != nil {
-			log.Println("Failed to render the template")
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. HTML Rendering Failed. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
 		}
 
 	} else if session.Values["usertype"] == "ps" {
 		cid, ok := session.Values["cid"].(string)
 		bid, ok := session.Values["bid"].(string)
 		if !ok {
-			http.Error(w, "Invalid Session Data", http.StatusInternalServerError)
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Invalid Session data. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
 		}
 
 		booth, err := db.GetBooth(cid, bid)
 		display_data, err := db.GetDisplayData(cid, bid)
 		if err != nil {
-			log.Printf("Failed to retrieve polling station data: %v", err)
-			http.Error(w, "Failed to retrieve polling station data", http.StatusInternalServerError)
-			return
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Failed to retrieve polling station data. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
 		}
 		tmpl := template.Must(template.ParseFiles("web/templates/adminPS.html"))
 		err = tmpl.Execute(w, map[string]interface{}{
@@ -140,27 +157,46 @@ func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 			"DisplayData": display_data,
 		})
 		if err != nil {
-			log.Println("Failed to render the template")
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Failed to Render Template. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
 		}
 
-	} else {
+	} else if session.Values["usertype"] == "aro"{
+		
 		cid, ok := session.Values["cid"].(string)
 		if !ok {
-			http.Error(w, "Invalid Session Data", http.StatusInternalServerError)
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Session CID not Found. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
 		}
 		voterReqData, err := db.GetAllVoters(cid)
 		if err != nil {
-			log.Printf("Failed to retrieve polling station data: %v", err)
-			http.Error(w, "Failed to retrieve polling station data", http.StatusInternalServerError)
-			return
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Data for Constituency Not Available. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
 		}
 		tmpl := template.Must(template.ParseFiles("web/templates/adminARO.html"))
 		err = tmpl.Execute(w, map[string]interface{}{
 			"VoterReqData": voterReqData,
 		})
 		if err != nil {
-			log.Println("Failed to render the template")
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. ARO Dashboard Rendering Failed. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
 		}
+	} else {
+		session.Values["authenticated"] = false
+		session.Save(r, w)
+		http.Redirect(w, r, "/admin/login", http.StatusFound)
 	}
 
 }
@@ -177,16 +213,12 @@ func HandleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleCounterUpdate(w http.ResponseWriter, r *http.Request) {
-	// Parse the form data
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
-
-	// Get the counter value from the form
 	peopleInQueue := r.FormValue("counter")
-
 	session, err := store.Get(r, "session-name")
 	if err != nil || session.Values["authenticated"] != true {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -198,89 +230,11 @@ func HandleCounterUpdate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid session data", http.StatusInternalServerError)
 		return
 	}
-
 	db.UpdateQueue(cid, bid, peopleInQueue)
 	http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
 
 }
 
-func HandleGetAllVoters(w http.ResponseWriter, r *http.Request) {
-	session, err := store.Get(r, "session-name")
-	if err != nil || session.Values["authenticated"] != true {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	cid, ok := session.Values["cid"].(string)
-	if !ok {
-		http.Error(w, "Invalid session data", http.StatusInternalServerError)
-		return
-	}
-	// bid, ok := session.Values["bid"].(string)
-	// if !ok {
-	// 	http.Error(w, "Invalid session data", http.StatusInternalServerError)
-	// 	return
-	// }
-	voters, err := db.GetAllVoters(cid)
-	if err != nil {
-		http.Error(w, "Failed to get voters", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(voters)
-}
-
-func HandleGetQueue(w http.ResponseWriter, r *http.Request) {
-	session, err := store.Get(r, "session-name")
-	if err != nil || session.Values["authenticated"] != true {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	bid, ok := session.Values["bid"].(string)
-	if !ok {
-		http.Error(w, "Invalid session data", http.StatusInternalServerError)
-		return
-	}
-	cid, ok := session.Values["cid"].(string)
-	if !ok {
-		http.Error(w, "Invalid session data", http.StatusInternalServerError)
-		return
-	}
-	queue, err := db.GetQueue(cid, bid)
-	if err != nil {
-		http.Error(w, "Failed to get queue", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(queue)
-}
-
-func HandleGetBoothData(w http.ResponseWriter, r *http.Request) {
-	session, err := store.Get(r, "session-name")
-	if err != nil || session.Values["authenticated"] != true {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	cid, ok := session.Values["cid"].(string)
-	if !ok {
-		http.Error(w, "Invalid session data", http.StatusInternalServerError)
-		return
-	}
-	bid, ok := session.Values["bid"].(string)
-	if !ok {
-		http.Error(w, "Invalid session data", http.StatusInternalServerError)
-		return
-	}
-	booth, err := db.GetBooth(cid, bid)
-	if err != nil {
-		http.Error(w, "Failed to get booth data", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(booth)
-}
 
 func HandleVoterReqStatus(w http.ResponseWriter, r *http.Request) {
 	// Parse the form data
@@ -296,13 +250,11 @@ func HandleVoterReqStatus(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	fmt.Println("First")
 	err = db.UpdateVoterRequest(objectID)
 	if err != nil {
 		http.Error(w, "Failed to get voter request", http.StatusInternalServerError)
 		return
 	}
-	fmt.Println("Second")
 
 	http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
 }

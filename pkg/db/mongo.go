@@ -66,7 +66,6 @@ func GetLiveTrafficByBoothID(boothID string) (string, error) {
 	var liveTraffic struct {
 		Counter string `bson:"counter"`
 	}
-	fmt.Println("one")
 	filter := bson.M{"bid": boothID}
 	result := pollingStationCollection.FindOne(context.Background(), filter)
 	if result.Err() != nil {
@@ -75,13 +74,11 @@ func GetLiveTrafficByBoothID(boothID string) (string, error) {
 		}
 		return liveTraffic.Counter, fmt.Errorf("error finding live traffic data %v", result.Err())
 	}
-	fmt.Println("two")
 
 	if err := result.Decode(&liveTraffic); err != nil {
 		return liveTraffic.Counter, fmt.Errorf("error decoding live traffic data %v", err)
 	}
 
-	fmt.Println("Three")
 	return liveTraffic.Counter, nil
 }
 

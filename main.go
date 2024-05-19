@@ -28,10 +28,7 @@ func main() {
 	r.HandleFunc("/admin/login", handlers.HandleAuthenticate).Methods("POST")
 	r.HandleFunc("/admin/logout", handlers.HandleLogout).Methods("POST")
 	r.HandleFunc("/admin/dashboard", handlers.HandleAdminDashboard).Methods("GET")
-	r.HandleFunc("/admin/get_queue", handlers.HandleGetQueue).Methods("GET")
-	r.HandleFunc("/admin/get_booth_data", handlers.HandleGetBoothData).Methods("GET")
 	r.HandleFunc("/admin/counter_update", handlers.HandleCounterUpdate).Methods("POST")
-	r.HandleFunc("/admin/voter_req", handlers.HandleGetAllVoters).Methods("GET")
 	r.HandleFunc("/admin/voter_req", handlers.HandleVoterReqStatus).Methods("POST")
 
 	corsMiddlerware := cors.Default()
