@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Polling Staff Dashboard</title>
+    <title>BLO Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 </head>
 
@@ -13,69 +13,105 @@
         <img src="https://electionspatiala.com/images/logo.jpg" alt="Logo" class="mx-auto mb-4 w-32 h-auto" />
         <h1 class="text-2xl font-bold text-gray-800 mb-6">BLO Dashboard</h1>
 
-        <div class="bg-white shadow-md rounded-lg p-6 mb-6">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">
-                Polling Duties Information
-            </h2>
-            <p class="text-gray-600"><strong>Booth Name:</strong>
-                <span id="booth_name"></span>
-            </p>
-            <p class="text-gray-600"><strong>Booth Number:</strong>
-                <span id="booth_number"></span>
-            </p>
-            <p class="text-gray-600"><strong>Bus Number:</strong>
-                <span id="bus_number"></span>
-            </p>
-            <p class="text-gray-600"><strong>Contact:</strong>
-                <span id="contact"></span>
-            </p>
-            <p class="text-gray-600 mt-4"><strong>Other Polling Staff:</strong>
-            </p>
-
-            <ul class="text-gray-600 list-disc list-inside">
-                <li>John Doe - 9812345678</li>
-                <li>Jane Smith - 9876543210</li>
-                <!-- Add more staff as needed -->
-            </ul>
-        </div>
-
         <div class="bg-white shadow-md rounded-lg p-6">
-            <div class="mb-4">
-                <label for="currentQueue" class="block text-gray-700 text-lg">Current Queue:</label>
-                <span id="currentQueue" class="text-2xl font-bold text-gray-800">0</span>
-            </div>
-            <form action="/admin/logout" method="POST">
-                <button type="submit"
-                    class="px-4 py-2 bg-red-500 text-white font-semibold rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-300">
-                    Logout
+            <div class="flex justify-center mb-4">
+                <button id="polling-station-btn"
+                    class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300 mr-4">
+                    Polling Station Data
                 </button>
-            </form>
+                <button id="polling-staff-btn"
+                    class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300">
+                    Election Duty Data Data
+                </button>
+            </div>
+
+            <div id="polling-station-content" class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">
+                    Polling Duties Information
+                </h2>
+                <p class="text-gray-600"><strong>Booth Name:</strong>
+                    <span>{{ .Booth.Bid }}</span>
+                </p>
+                <p class="text-gray-600"><strong>Booth Number:</strong>
+                    <span>{{ .Booth.BoothName }}</span>
+                </p>
+                <p class="text-gray-600"><strong>BLO Name:</strong>
+                    <span></span> {{.Booth.BloName }}</span>
+                </p>
+                <p class="text-gray-600"><strong>BLO Contact:</strong>
+                    <span>{{ .Booth.BloContact }}</span>
+                </p>
+                <p class="text-gray-600"><strong>Sector Officer Name:</strong>
+                    <span>{{ .Booth.SectorOfficerName}}</span>
+                </p>
+            </div>
+
+            <div id="polling-staff-content" class="mb-6" style="display: none;">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">
+                    Election Duty Data
+                </h2>
+                <p class="text-gray-600"><strong>DispatchCenter:</strong>
+                    <span>{{ .DisplayData.DispatchCenter}}</span>
+                </p>
+                <p class="text-gray-600"><strong>CounterNoBase:</strong>
+                    <span>{{ .DisplayData.CounterNoBase}}</span>
+                </p>
+                <p class="text-gray-600"><strong>BusNo:</strong>
+                    <span>{{ .DisplayData.BusNo}}</span>
+                </p>
+                <p class="text-gray-600"><strong>DriverNo:</strong>
+                    <span>{{ .DisplayData.DriverNo}}</span>
+                </p>
+                <p class="text-gray-600"><strong>DriverName:</strong>
+                    <span>{{ .DisplayData.DriverName}}</span>
+                </p>
+                <p class="text-gray-600 mt-4"><strong>Polling Staff:</strong></p>
+                <ul class="text-gray-600 list-disc list-inside">
+                    {{ range .DisplayData.PollingStaff }}
+                    <li>{{ .Name }} - {{ .Contact }}</li>
+                    {{ end }}
+                </ul>
+                <p class="text-gray-600 mt-4"><strong>Police Staff:</strong></p>
+                <ul class="text-gray-600 list-disc list-inside">
+                    {{ range .DisplayData.PoliceStaff }}
+                    <li>{{ .Name }} - {{ .Contact }}</li>
+                    {{ end }}
+                </ul>
+            </div>
+
+                
+                <form action="/admin/logout" method="POST">
+                    <button type="submit"
+                        class="px-4 py-2 bg-red-500 text-white font-semibold rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-300">
+                        Logout
+                    </button>
+                </form>
+            
         </div>
     </div>
 
     <script>
-        fetch('/admin/get_booth_data', {
-            method: 'GET',
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log(data);
-                document.getElementById("booth_name").textContent = data.BoothName;
-                document.getElementById("booth_number").textContent = data.BID;
-                // document.getElementById("bus_number").textContent = data.BusNumber;
-                document.getElementById("contact").textContent = data.BloContact;
-                // document.getElementById("other_polling_staff").textContent = data.OtherPollingStaff;
-                document.getElementById("currentQueue").textContent = data.Counter;
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-          </script>
+       
+        // Toggle between Polling Station Data and Polling Staff Data
+        const pollingStationBtn = document.getElementById('polling-station-btn');
+        const pollingStaffBtn = document.getElementById('polling-staff-btn');
+        const pollingStationContent = document.getElementById('polling-station-content');
+        const pollingStaffContent = document.getElementById('polling-staff-content');
+
+        pollingStationBtn.addEventListener('click', () => {
+            pollingStationContent.style.display = 'block';
+            pollingStaffContent.style.display = 'none';
+            pollingStationBtn.classList.add('bg-blue-600');
+            pollingStaffBtn.classList.remove('bg-blue-600');
+        });
+
+        pollingStaffBtn.addEventListener('click', () => {
+            pollingStationContent.style.display = 'none';
+            pollingStaffContent.style.display = 'block';
+            pollingStaffBtn.classList.add('bg-blue-600');
+            pollingStationBtn.classList.remove('bg-blue-600');
+        });
+    </script>
 </body>
 
 </html>

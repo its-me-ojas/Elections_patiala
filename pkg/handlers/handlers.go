@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	"text/template"
-
+	"fmt"
 	"github.com/gorilla/sessions"
 )
 
@@ -53,25 +53,26 @@ func HandlerAdminLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Handling Auth")
 	contact := r.FormValue("contact")
 	password := r.FormValue("password")
 
 	userInfo, err := db.AuthenticateAdmin(contact, password)
 	if err != nil {
 		log.Println("Authentication error: ", err)
-		http.Error(w, "Authentication failed", http.StatusUnauthorized)
-		return
+		userInfo=nil
 	}
 
 	if userInfo == nil {
 		session, _ := store.Get(r, "session-name")
 		session.Values["error"] = "Incorrect username or password"
 		session.Save(r, w)
-		http.Redirect(w, r, "/admin/login", http.StatusExpectationFailed)
+		http.Redirect(w, r, "/admin/login", http.StatusFound)
 		return
 	}
 
 	session, _ := store.Get(r, "session-name")
+	session.Values["error"] = ""
 	session.Values["authenticated"] = true
 	session.Values["usertype"] = userInfo["usertype"]
 
@@ -87,30 +88,61 @@ func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
 }
 
 func HanldeAdminDashboard(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Dashboard Opening")
+
 	session, err := store.Get(r, "session-name")
 	if err != nil || session.Values["authenticated"] != true {
 		http.Redirect(w, r, "/admin/login", http.StatusUnauthorized)
 		return
 	}
-
 	if session.Values["usertype"] == "blo" {
+		cid,ok := session.Values["cid"].(string)
 		bid, ok := session.Values["bid"].(string)
 		if !ok {
 			http.Error(w, "Invalid Session Data", http.StatusInternalServerError)
 		}
-		liveTraffic, err := db.GetLiveTrafficByBoothID(bid)
+
+		booth, err := db.GetBooth(cid,bid)
+		display_data,err:=db.GetDisplayData(cid,bid)
 		if err != nil {
 			log.Printf("Failed to retrieve polling station data: %v", err)
 			http.Error(w, "Failed to retrieve polling station data", http.StatusInternalServerError)
 			return
 		}
 		tmpl := template.Must(template.ParseFiles("web/templates/adminBLO.html"))
-		err = tmpl.Execute(w, liveTraffic)
+		err = tmpl.Execute(w, map[string]interface{}{
+			"Booth":      booth,
+			"DisplayData": display_data,
+		})
 		if err != nil {
 			log.Println("Failed to render the template")
 		}
 
-	} // else {
+	}	else if session.Values["usertype"] == "ps" {
+		cid,ok := session.Values["cid"].(string)
+		bid, ok := session.Values["bid"].(string)
+		if !ok {
+			http.Error(w, "Invalid Session Data", http.StatusInternalServerError)
+		}
+
+		booth, err := db.GetBooth(cid,bid)
+		display_data,err:=db.GetDisplayData(cid,bid)
+		if err != nil {
+			log.Printf("Failed to retrieve polling station data: %v", err)
+			http.Error(w, "Failed to retrieve polling station data", http.StatusInternalServerError)
+			return
+		}
+		tmpl := template.Must(template.ParseFiles("web/templates/adminPS.html"))
+		err = tmpl.Execute(w, map[string]interface{}{
+			"Booth":      booth,
+			"DisplayData": display_data,
+		})
+		if err != nil {
+			log.Println("Failed to render the template")
+		}
+
+	}
+	// else {
 	//	cid, ok := session.Values["cid"].(string)
 	//	if !ok {
 	//		http.Error(w, "Invalid Session Data", http.StatusInternalServerError)
@@ -157,14 +189,14 @@ func HanldeCounterUpdate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-
+	cid, ok := session.Values["cid"].(string)
 	bid, ok := session.Values["bid"].(string)
 	if !ok {
 		http.Error(w, "Invalid session data", http.StatusInternalServerError)
 		return
 	}
 
-	db.UpdateQueue(bid, peopleInQueue)
+	db.UpdateQueue(cid,bid, peopleInQueue)
 	http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
 
 }
@@ -216,12 +248,12 @@ func HandleGetAllVoters(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid session data", http.StatusInternalServerError)
 		return
 	}
-	bid, ok := session.Values["bid"].(string)
-	if !ok {
-		http.Error(w, "Invalid session data", http.StatusInternalServerError)
-		return
-	}
-	voters, err := db.GetAllVoters(cid, bid)
+	// bid, ok := session.Values["bid"].(string)
+	// if !ok {
+	// 	http.Error(w, "Invalid session data", http.StatusInternalServerError)
+	// 	return
+	// }
+	voters, err := db.GetAllVoters(cid)
 	if err != nil {
 		http.Error(w, "Failed to get voters", http.StatusInternalServerError)
 		return
