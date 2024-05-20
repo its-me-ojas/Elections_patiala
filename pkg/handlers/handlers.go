@@ -240,7 +240,8 @@ func HandleVoterReqStatus(w http.ResponseWriter, r *http.Request) {
 	// Parse the form data
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
+		// http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 	objectID := r.FormValue("objectID")
@@ -252,7 +253,8 @@ func HandleVoterReqStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	err = db.UpdateVoterRequest(objectID)
 	if err != nil {
-		http.Error(w, "Failed to get voter request", http.StatusInternalServerError)
+		// http.Error(w, "Failed to get voter request", http.StatusInternalServerError)
+		http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
 		return
 	}
 
