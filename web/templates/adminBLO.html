@@ -119,9 +119,14 @@
                         </button>
                     </div>
                 </form>
-                <form action="/admin/logout" method="POST">
-                    <button type="submit"
-                        class="px-4 py-2 bg-red-500 text-white font-semibold rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-300">
+                <a href="https://www.google.com/maps?q={{.Booth.GeoCoordinates}}" target="_blank">
+                    <button type="button" class="inline-block px-4 py-2 bg-red-500 text-white font-semibold rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-300">
+                        Open Google Maps
+                    </button>
+                </a>
+                
+                <form action="/admin/logout" method="POST" class="mt-4">
+                    <button type="submit" class="inline-block px-4 py-2 bg-red-500 text-white font-semibold rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-300">
                         Logout
                     </button>
                 </form>
