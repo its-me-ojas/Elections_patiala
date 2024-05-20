@@ -164,15 +164,14 @@ func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 			return		
 		}
 
-	} else if session.Values["usertype"] == "aro"{
-		
+	} else if session.Values["usertype"] == "aro" {
 		cid, ok := session.Values["cid"].(string)
 		if !ok {
 			session.Values["authenticated"] = false
 			session.Values["error"] = "Server Error. Session CID not Found. Contact Administrator"
 			session.Save(r, w)
 			http.Redirect(w, r, "/admin/login", http.StatusFound)
-			return		
+			return
 		}
 		voterReqData, err := db.GetAllVoters(cid)
 		if err != nil {
@@ -180,18 +179,35 @@ func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 			session.Values["error"] = "Server Error. Data for Constituency Not Available. Contact Administrator"
 			session.Save(r, w)
 			http.Redirect(w, r, "/admin/login", http.StatusFound)
-			return		
+			return
+		}
+	
+		// Fetch booth data for each voter request
+		var voterDataWithBooth []map[string]interface{}
+		for _, voter := range voterReqData {
+			booth, err := db.GetBooth(voter.CID, voter.BID)
+			if err != nil {
+				session.Values["authenticated"] = false
+				session.Values["error"] = "Server Error. Booth Data Not Available. Contact Administrator"
+				session.Save(r, w)
+				http.Redirect(w, r, "/admin/login", http.StatusFound)
+				return
+			}
+			voterDataWithBooth = append(voterDataWithBooth, map[string]interface{}{
+				"Voter": voter,
+				"Booth": booth,
+			})
 		}
 		tmpl := template.Must(template.ParseFiles("web/templates/adminARO.html"))
 		err = tmpl.Execute(w, map[string]interface{}{
-			"VoterReqData": voterReqData,
+			"VoterDataWithBooth": voterDataWithBooth,
 		})
 		if err != nil {
 			session.Values["authenticated"] = false
 			session.Values["error"] = "Server Error. ARO Dashboard Rendering Failed. Contact Administrator"
 			session.Save(r, w)
 			http.Redirect(w, r, "/admin/login", http.StatusFound)
-			return		
+			return
 		}
 	} else {
 		session.Values["authenticated"] = false
