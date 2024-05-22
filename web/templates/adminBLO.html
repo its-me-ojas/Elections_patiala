@@ -9,27 +9,44 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="container mx-auto p-4 text-center">
-        <img src="https://electionspatiala.com/images/logo.jpg" alt="Logo" class="mx-auto mb-4 w-32 h-auto" />
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">BLO Dashboard</h1>
+<body class=" flex flex-col items-center min-h-screen p-4">
 
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <div class="flex justify-center mb-4">
-                <button id="polling-station-btn"
-                    class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300 mr-4">
+    <!-- Navbar -->
+    <nav class="w-full bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <img src="https://electionspatiala.com/images/logo.jpg" alt="Logo" class="h-12 w-12 rounded-full shadow-md mr-3" />
+                    <div class="flex items-center justify-center ">
+                        <span class=" text-1xl lg:text-2xl font-extrabold text-gray-800">BLO Dashboard</span> 
+                    </div>
+                </div>
+                <div>
+                    <form action="/admin/logout" method="POST" class="inline">
+                        <button type="submit" class="px-4 py-2 bg-red-500 text-white font-semibold rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-300">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="bg-white shadow-lg rounded-lg p-6 max-w-4xl w-full text-center mt-10">
+        <div class="bg-gray-100 rounded-lg p-6 shadow-md mb-6">
+            <div class="flex justify-center mb-4 space-x-4">
+                <button id="polling-station-btn" class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300">
                     Polling Station Data
                 </button>
-                <button id="polling-staff-btn"
-                    class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300">
+                <button id="polling-staff-btn" class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300">
                     Election Duty Data
                 </button>
             </div>
 
             <div id="polling-station-content" class="mb-6">
                 <h2 class="text-xl font-semibold text-gray-700 mb-4">Polling Duties Information</h2>
-                <div class="flex flex-wrap">
-                    <div class="w-full md:w-1/2 text-left">
+                <div class="flex flex-wrap justify-center space-y-2 text-left">
+                    <div class="w-full md:w-1/2 px-4">
                         <p class="text-gray-600"><strong>Booth Number:</strong> <span>{{ .Booth.Bid }}</span></p>
                         <p class="text-gray-600"><strong>Booth Name:</strong> <span>{{ .Booth.BoothName }}</span></p>
                         <p class="text-gray-600"><strong>Booth Level Officer Name:</strong> <span>{{ .Booth.BloName }}</span></p>
@@ -41,7 +58,7 @@
                         <p class="text-gray-600"><strong>Location Incharge Name:</strong> <span>{{ .Booth.LocationInchargeName }}</span></p>
                         <p class="text-gray-600"><strong>Location Incharge Contact:</strong> <span>{{ .Booth.LocationInchargeContact }}</span></p>
                     </div>
-                    <div class="w-full md:w-1/2 text-left">
+                    <div class="w-full md:w-1/2 px-4">
                         <p class="text-gray-600"><strong>ARO Name:</strong> <span>{{ .Booth.AroName }}</span></p>
                         <p class="text-gray-600"><strong>ARO Contact:</strong> <span>{{ .Booth.AroContact }}</span></p>
                         <p class="text-gray-600"><strong>DSP Name:</strong> <span>{{ .Booth.DspName }}</span></p>
@@ -58,49 +75,35 @@
                 </div>
             </div>
 
-            <div id="polling-staff-content" class="mb-6" style="display: none;">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">
-                    Election Duty Data
-                </h2>
-                <p class="text-gray-600"><strong>DispatchCenter:</strong>
-                    <span>{{ .DisplayData.DispatchCenter}}</span>
-                </p>
-                <p class="text-gray-600"><strong>CounterNoBase:</strong>
-                    <span>{{ .DisplayData.CounterNoBase}}</span>
-                </p>
-                <p class="text-gray-600"><strong>BusNo:</strong>
-                    <span>{{ .DisplayData.BusNo}}</span>
-                </p>
-                <p class="text-gray-600"><strong>DriverNo:</strong>
-                    <span>{{ .DisplayData.DriverNo}}</span>
-                </p>
-                <p class="text-gray-600"><strong>DriverName:</strong>
-                    <span>{{ .DisplayData.DriverName}}</span>
-                </p>
-                <p class="text-gray-600"><strong>School Incharge:</strong>
-                    <span>{{ .DisplayData.SchoolIncharge}}</span>
-                </p>
-                <p class="text-gray-600"><strong>School Incharge Number:</strong>
-                    <span>{{ .DisplayData.SchoolInchargeNumber}}</span>
-                </p>
-                <p class="text-gray-600"><strong>Housing Incharge:</strong>
-                    <span>{{ .DisplayData.HousingIncharge}}</span>
-                </p>
-                <p class="text-gray-600"><strong>Housing Incharge Number:</strong>
-                    <span>{{ .DisplayData.HousingInchargeNumber}}</span>
-                </p>
-                <p class="text-gray-600 mt-4"><strong>Polling Staff:</strong></p>
-                <ul class="text-gray-600 list-disc list-inside">
-                    {{ range .DisplayData.PollingStaff }}
-                    <li>{{ .Name }} - {{ .Contact }}</li>
-                    {{ end }}
-                </ul>
-                <p class="text-gray-600 mt-4"><strong>Police Staff:</strong></p>
-                <ul class="text-gray-600 list-disc list-inside">
-                    {{ range .DisplayData.PoliceStaff }}
-                    <li>{{ .Name }} - {{ .Contact }}</li>
-                    {{ end }}
-                </ul>
+            <div id="polling-staff-content" class="mb-6 hidden">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Election Duty Data</h2>
+                <div class="space-y-2">
+                    <p class="text-gray-600"><strong>Dispatch Center:</strong> <span>{{ .DisplayData.DispatchCenter }}</span></p>
+                    <p class="text-gray-600"><strong>Counter No Base:</strong> <span>{{ .DisplayData.CounterNoBase }}</span></p>
+                    <p class="text-gray-600"><strong>Bus No:</strong> <span>{{ .DisplayData.BusNo }}</span></p>
+                    <p class="text-gray-600"><strong>Driver No:</strong> <span>{{ .DisplayData.DriverNo }}</span></p>
+                    <p class="text-gray-600"><strong>Driver Name:</strong> <span>{{ .DisplayData.DriverName }}</span></p>
+                    <p class="text-gray-600"><strong>School Incharge:</strong> <span>{{ .DisplayData.SchoolIncharge }}</span></p>
+                    <p class="text-gray-600"><strong>School Incharge Number:</strong> <span>{{ .DisplayData.SchoolInchargeNumber }}</span></p>
+                    <p class="text-gray-600"><strong>Housing Incharge:</strong> <span>{{ .DisplayData.HousingIncharge }}</span></p>
+                    <p class="text-gray-600"><strong>Housing Incharge Number:</strong> <span>{{ .DisplayData.HousingInchargeNumber }}</span></p>
+                </div>
+                <div class="mt-4">
+                    <p class="text-gray-600"><strong>Polling Staff:</strong></p>
+                    <ul class="text-gray-600 list-disc list-inside">
+                        {{ range .DisplayData.PollingStaff }}
+                        <li>{{ .Name }} - {{ .Contact }}</li>
+                        {{ end }}
+                    </ul>
+                </div>
+                <div class="mt-4">
+                    <p class="text-gray-600"><strong>Police Staff:</strong></p>
+                    <ul class="text-gray-600 list-disc list-inside">
+                        {{ range .DisplayData.PoliceStaff }}
+                        <li>{{ .Name }} - {{ .Contact }}</li>
+                        {{ end }}
+                    </ul>
+                </div>
             </div>
 
             <div class="bg-white shadow-md rounded-lg p-6">
@@ -110,7 +113,7 @@
                 </div>
                 <form id="updateQueueForm" class="mt-4">
                     <label for="newQueue" class="block text-gray-700 text-lg mb-2">Update Queue:</label>
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center justify-center space-x-4">
                         <input type="number" id="newQueue" name="newQueue" min="0" required
                             class="w-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300" />
                         <button type="submit"
@@ -119,68 +122,60 @@
                         </button>
                     </div>
                 </form>
-                <a href="https://www.google.com/maps?q={{.Booth.GeoCoordinates}}" target="_blank">
+                <a href="https://www.google.com/maps?q={{.Booth.GeoCoordinates}}" target="_blank" class="block mt-4">
                     <button type="button" class="inline-block px-4 py-2 bg-red-500 text-white font-semibold rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-300">
                         Open Google Maps
                     </button>
                 </a>
-                
-                <form action="/admin/logout" method="POST" class="mt-4">
-                    <button type="submit" class="inline-block px-4 py-2 bg-red-500 text-white font-semibold rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-300">
-                        Logout
-                    </button>
-                </form>
             </div>
         </div>
     </div>
 
     <script>
-        document
-            .getElementById("updateQueueForm")
-            .addEventListener("submit", function (e) {
-                e.preventDefault();
+        document.getElementById("updateQueueForm").addEventListener("submit", function (e) {
+            e.preventDefault();
 
-                const newQueueValue = document.getElementById("newQueue").value;
-                document.getElementById("currentQueue").textContent = newQueueValue;
+            const newQueueValue = document.getElementById("newQueue").value;
+            document.getElementById("currentQueue").textContent = newQueueValue;
 
-                // Make a POST request to /admin/counterupdate
-                fetch('/admin/counter_update', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `counter=${newQueueValue}`,
+            
+            fetch('/admin/counter_update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `counter=${newQueueValue}`,
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
                 })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.text();
-                    })
-                    .then(data => {
-                        console.log('Success:', data);
-                    })
-                    .catch((error) => {
-                        console.error('Error:', error);
-                    });
-            });
+                .then(data => {
+                    console.log('Success:', data);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        });
 
-        // Toggle between Polling Station Data and Polling Staff Data
+        
         const pollingStationBtn = document.getElementById('polling-station-btn');
         const pollingStaffBtn = document.getElementById('polling-staff-btn');
         const pollingStationContent = document.getElementById('polling-station-content');
         const pollingStaffContent = document.getElementById('polling-staff-content');
 
         pollingStationBtn.addEventListener('click', () => {
-            pollingStationContent.style.display = 'block';
-            pollingStaffContent.style.display = 'none';
+            pollingStationContent.classList.remove('hidden');
+            pollingStaffContent.classList.add('hidden');
             pollingStationBtn.classList.add('bg-blue-600');
             pollingStaffBtn.classList.remove('bg-blue-600');
         });
 
         pollingStaffBtn.addEventListener('click', () => {
-            pollingStationContent.style.display = 'none';
-            pollingStaffContent.style.display = 'block';
+            pollingStationContent.classList.add('hidden');
+            pollingStaffContent.classList.remove('hidden');
             pollingStaffBtn.classList.add('bg-blue-600');
             pollingStationBtn.classList.remove('bg-blue-600');
         });
