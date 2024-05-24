@@ -52,7 +52,7 @@ func AuthenticateAdmin(contact, password string) (map[string]string, error) {
 	switch user.UserType {
 	case "aro":
 		result["cid"] = user.CID
-	case "blo", "ps":
+	case "blo", "ps","vl":
 		result["cid"] = user.CID
 		result["bid"] = user.BID
 	default:
@@ -124,6 +124,33 @@ func GetAllVoters(cid string) ([]Voter, error) {
 
 	return voters, nil
 }
+
+func GetAllVotersBid(cid string, bid string) ([]Voter, error) {
+	var voters []Voter
+
+	filter := bson.M{"cid": cid, "bid": bid}
+	cursor, err := votersReqCollection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	for cursor.Next(context.Background()) {
+		var voter Voter
+		err := cursor.Decode(&voter)
+		if err != nil {
+			return nil, err
+		}
+		voters = append(voters, voter)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return voters, nil
+}
+
 
 func GetQueue(cid, bid string) (string, error) {
 	var counter Counter

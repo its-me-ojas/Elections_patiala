@@ -209,6 +209,72 @@ func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/admin/login", http.StatusFound)
 			return
 		}
+	} else if session.Values["usertype"] == "vl" {
+		cid, ok := session.Values["cid"].(string)
+		bid, ok := session.Values["bid"].(string)
+		if !ok {
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Invalid Session Data. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
+		}
+
+		booth, err := db.GetBooth(cid, bid)
+		if err != nil {
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Failed to recieve Polling Station Data. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
+		}
+		display_data, err := db.GetDisplayData(cid, bid)
+		if err != nil {
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Failed to recieve Election Duty Data. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
+		}
+		voterReqData, err := db.GetAllVotersBid(cid,bid)
+		if err != nil {
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Data for Constituency Not Available. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return
+		}
+		
+		// Fetch booth data for each voter request
+		var voterDataWithBooth []map[string]interface{}
+		for _, voter := range voterReqData {
+			booth, err := db.GetBooth(voter.CID, voter.BID)
+			if err != nil {
+				session.Values["authenticated"] = false
+				session.Values["error"] = "Server Error. Booth Data Not Available. Contact Administrator"
+				session.Save(r, w)
+				http.Redirect(w, r, "/admin/login", http.StatusFound)
+				return
+			}
+			voterDataWithBooth = append(voterDataWithBooth, map[string]interface{}{
+				"Voter": voter,
+				"Booth": booth,
+			})
+		}
+		tmpl := template.Must(template.ParseFiles("web/templates/adminVolunteer.html"))
+		err = tmpl.Execute(w, map[string]interface{}{
+			"Booth":        booth,
+			"DisplayData":  display_data,
+			"voterDataWithBooth": voterDataWithBooth,
+		})
+		if err != nil {
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. HTML Rendering Failed. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
+		}
+
 	} else {
 		session.Values["authenticated"] = false
 		session.Save(r, w)
