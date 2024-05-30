@@ -14,22 +14,26 @@ type User struct {
 }
 
 type DisplayData struct {
-	ID                    primitive.ObjectID `bson:"_id,omitempty"`
-	BID                   string             `bson:"bid"`
-	CID                   string             `bson:"cid"`
-	DispatchCenter        string             `bson:"dispatch_center"`
-	CounterNoBase         string             `bson:"counter_no_base"`
-	BusNo                 string             `bson:"bus_no"`
-	DriverNo              string             `bson:"driver_no"`
-	DriverName            string             `bson:"driver_name"`
-	SchoolIncharge        string             `bson:"school_incharge"`
-	SchoolInchargeNumber  string             `bson:"school_incharge_number"`
-	HousingIncharge       string             `bson:"housing_incharge"`
-	HousingInchargeNumber string             `bson:"housing_incharge_number"`
-	PollingStaff          []Staff            `bson:"polling_staff"`
-	PoliceStaff           []Staff            `bson:"police_staff"`
-	Microbserver          string             `bson:"microbserver"`
-	MicrobserverContact   string             `bson:"microbserver_contact"`
+	ID                     primitive.ObjectID `bson:"_id,omitempty"`
+	BID                    string             `bson:"bid"`
+	CID                    string             `bson:"cid"`
+	DispatchCenter         string             `bson:"dispatch_center"`
+	DispatchCounterNo      string             `bson:"dispatch_center_counter_no"`
+	ReceiptCenter          string             `bson:"receipt_center"`
+	ReceiptCounterNo       string             `bson:"receipt_center_counter_no"`
+	BusNo                  string             `bson:"bus_no"`
+	DriverName             string             `bson:"driver_name"`
+	DriverContact          string             `bson:"driver_contact"`
+	LocationIncharge       string             `bson:"location_incharge"`
+	LocationInchargeContact string            `bson:"location_incharge_contact"`
+	FoodBeddingIncharge    string             `bson:"food_bedding_incharge"`
+	FoodBeddingContact     string             `bson:"food_bedding_incharge_contact"`
+	VolunteerName          string             `bson:"volunteer_name"`
+	VolunteerContact       string             `bson:"volunteer_contact"`
+	MicroObserverName      string             `bson:"micro_observer_name"`
+	MicroObserverContact   string             `bson:"micro_observer_contact"`
+	PollingStaff           []Staff            `bson:"polling_staff"`
+	PoliceStaff            []Staff            `bson:"police_staff"`
 }
 
 type Staff struct {
