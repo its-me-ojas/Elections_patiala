@@ -99,6 +99,17 @@ func UpdateQueue(cid, bid, counter string) error {
 	return nil
 }
 
+func UpdatePassword(contact, newPassword string) error {
+	filter := bson.M{"contact": contact}
+	
+	update := bson.M{"$set": bson.M{"pass": newPassword}}
+	_, err := usersCollection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func GetAllVoters(cid string) ([]Voter, error) {
 	var voters []Voter
 

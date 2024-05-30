@@ -51,7 +51,52 @@ func HandlerAdminLogin(w http.ResponseWriter, r *http.Request) {
 	})
 
 }
+func HandleResetPasswordPage(w http.ResponseWriter, r *http.Request){
+	session, err := store.Get(r, "session-name")
 
+	if err != nil || session.Values["authenticated"] != true {
+		http.Redirect(w, r, "/admin/login", http.StatusUnauthorized)
+		return
+	}
+	var errorMsg string
+	if val, ok := session.Values["error"].(string); ok {
+		errorMsg = val
+		delete(session.Values, "error")
+		session.Save(r, w)
+	}
+
+	tmpl := template.Must(template.ParseFiles("web/templates/changepassword.html"))
+	tmpl.Execute(w, map[string]interface{}{
+		"Error": errorMsg,
+	})
+}
+func HandleResetPassword(w http.ResponseWriter, r *http.Request){
+
+	session, err := store.Get(r, "session-name")
+	contact, _ := session.Values["contact"].(string)
+	password := r.FormValue("new_password")
+	confirm_password := r.FormValue("confirm_password")
+
+	if err != nil || session.Values["authenticated"] != true {
+		http.Redirect(w, r, "/admin/login", http.StatusFound)
+		return
+	}
+
+	if err != nil || password!=confirm_password {
+		session.Values["error"] = "Passwords does match in confirm password field"
+		session.Save(r, w)
+		http.Redirect(w, r, "/admin/reset", http.StatusFound)
+		return
+	}
+
+	err=db.UpdatePassword(contact,password)
+	if err != nil  {
+		http.Redirect(w, r, "/admin/login", http.StatusFound)
+		return
+	} else {
+		http.Redirect(w, r, "/admin/login", http.StatusFound)
+	}	
+}
 func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
 	contact := r.FormValue("contact")
 	password := r.FormValue("password")
@@ -83,7 +128,16 @@ func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session.Save(r, w)
-	http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
+	if contact==password{
+		// fmt.Println(contact)
+		// fmt.Println(password)
+		session.Values["contact"] = contact
+		session.Save(r, w)
+		http.Redirect(w, r, "/admin/reset", http.StatusFound)
+	}else{
+		http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
+	}
+	
 }
 
 func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
