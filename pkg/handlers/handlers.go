@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"text/template"
+	"strconv"
+	"fmt"
 )
 
 var store = sessions.NewCookieStore([]byte("2eb7ddef6411bca4205d73dbfcbf9115fcf2ec43"))
@@ -181,7 +183,14 @@ func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/admin/login", http.StatusFound)
 			return
 		}
-	
+		lastUpdatedBooths, err := db.FetchBoothsByCidAndTime(cid)
+		if err != nil {
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Fetching Booths By Cid and Time not possible. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return
+		}
 		// Fetch booth data for each voter request
 		var voterDataWithBooth []map[string]interface{}
 		for _, voter := range voterReqData {
@@ -198,9 +207,13 @@ func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 				"Booth": booth,
 			})
 		}
-		tmpl := template.Must(template.ParseFiles("web/templates/adminARO.html"))
+		tmpl := template.Must(template.New("adminARO.html").Funcs(template.FuncMap{
+			"formatTime": formatTime,
+		}).ParseFiles("web/templates/adminARO.html"))
+
 		err = tmpl.Execute(w, map[string]interface{}{
 			"VoterDataWithBooth": voterDataWithBooth,
+			"LastUpdatedBooths": lastUpdatedBooths,
 		})
 		if err != nil {
 			session.Values["authenticated"] = false
@@ -341,4 +354,30 @@ func HandleVoterReqStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
+}
+
+
+func formatTime(timeStr string) string {
+	if len(timeStr) != 4 {
+		return "Invalid time format"
+	}
+
+	hour, _ := strconv.Atoi(timeStr[:2])
+	minute, _ := strconv.Atoi(timeStr[2:])
+
+	// Convert 24-hour format to 12-hour format and determine AM/PM
+	period := "AM"
+	if hour >= 12 {
+		period = "PM"
+	}
+	if hour > 12 {
+		hour -= 12
+	}
+
+	// Format hour and minute with leading zeros if necessary
+	hourStr := fmt.Sprintf("%02d", hour)
+	minuteStr := fmt.Sprintf("%02d", minute)
+
+	// Construct the time string
+	return hourStr + ":" + minuteStr + " " + period
 }

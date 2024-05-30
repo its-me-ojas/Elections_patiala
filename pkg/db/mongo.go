@@ -203,3 +203,41 @@ func UpdateVoterRequest(objectID string) error {
 	}
 	return nil
 }
+func FetchBoothsByCidAndTime(cid string) ([]Booth, error) {
+	
+	filter := bson.M{"cid": cid}
+	cur, err := pollingStationCollection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(context.Background())
+	var booths []Booth
+	for cur.Next(context.Background()) {
+		var booth Booth
+		if err := cur.Decode(&booth); err != nil {
+			return nil, err
+		}
+		lastUpdated, err := time.Parse("1504", booth.LastUpdated)
+		if err != nil {
+			return nil, err
+		}
+		loc, err := time.LoadLocation("Asia/Kolkata")
+        if err != nil {
+            return nil, err
+        }
+        now := time.Now().In(loc)
+
+        lastUpdated = time.Date(now.Year(), now.Month(), now.Day(), lastUpdated.Hour(), lastUpdated.Minute(), 0, 0, loc)
+
+		if now.Sub(lastUpdated) > 45*time.Minute {
+            booths = append(booths, booth)
+        }
+		
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return booths, nil
+}
