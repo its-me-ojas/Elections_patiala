@@ -51,6 +51,35 @@ func HandlerAdminLogin(w http.ResponseWriter, r *http.Request) {
 	})
 
 }
+
+func HandleROPage(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "session-name")
+	if err != nil {
+		log.Println("Error getting session", err)
+		return
+	}
+
+	if session.Values["authenticated"] == true && session.Values["usertype"]=="ro" {
+		http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
+		return
+	} else {
+		http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
+		return
+	}
+
+	// var errorMsg string
+	// if val, ok := session.Values["error"].(string); ok {
+	// 	errorMsg = val
+	// 	delete(session.Values, "error")
+	// 	session.Save(r, w)
+	// }
+
+	// tmpl := template.Must(template.ParseFiles("web/templates/login.html"))
+	// tmpl.Execute(w, map[string]interface{}{
+	// 	"Error": errorMsg,
+	// })
+
+}
 func HandleResetPasswordPage(w http.ResponseWriter, r *http.Request){
 	session, err := store.Get(r, "session-name")
 
@@ -143,7 +172,7 @@ func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 
 	session, err := store.Get(r, "session-name")
 	if err != nil || session.Values["authenticated"] != true {
-		http.Redirect(w, r, "/admin/login", http.StatusUnauthorized)
+		http.Redirect(w, r, "/admin/login", http.StatusFound)
 		return
 	}
 	if session.Values["usertype"] == "blo" {
@@ -286,6 +315,7 @@ func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/admin/login", http.StatusFound)
 			return
 		}
+		
 		// Fetch booth data for each voter request
 		var voterDataWithBooth []map[string]interface{}
 		for _, voter := range voterReqData {
@@ -302,13 +332,29 @@ func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 				"Booth": booth,
 			})
 		}
+		var lastUpdatedWithVolunteer []map[string]interface{}
+		for _, booth := range lastUpdatedBooths {
+			disp, err := db.GetDisplayData(booth.Cid, booth.Bid)
+			if err != nil {
+				session.Values["authenticated"] = false
+				session.Values["error"] = "Server Error. Booth Data Not Available. Contact Administrator"
+				session.Save(r, w)
+				http.Redirect(w, r, "/admin/login", http.StatusFound)
+				return
+			}
+			lastUpdatedWithVolunteer = append(lastUpdatedWithVolunteer, map[string]interface{}{
+				"Booth": booth,
+				"DisplayData":disp,
+			})
+		}
+
 		tmpl := template.Must(template.New("adminARO.html").Funcs(template.FuncMap{
 			"formatTime": formatTime,
 		}).ParseFiles("web/templates/adminARO.html"))
 
 		err = tmpl.Execute(w, map[string]interface{}{
 			"VoterDataWithBooth": voterDataWithBooth,
-			"LastUpdatedBooths": lastUpdatedBooths,
+			"LastUpdatedBooths": lastUpdatedWithVolunteer,
 		})
 		if err != nil {
 			session.Values["authenticated"] = false

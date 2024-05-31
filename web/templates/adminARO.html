@@ -93,12 +93,14 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {{ range .LastUpdatedBooths }}
                     <div class="bg-white p-4 rounded shadow transition duration-300 hover:shadow-lg">
-                        <p><strong>Booth No.: </strong>{{ .Bid }}</p>
-                        <p><strong>Booth Name: </strong>{{ .BoothName }}</p>
-                        <p><strong>BLO: </strong>{{ .BloName }}</p>
-                        <p><strong>BLO Contact: </strong>{{ .BloContact }}</p>
-                        <p><strong>Counter: </strong>{{ .Counter }}</p>
-                        <p><strong>Last Updated: </strong>{{ formatTime .LastUpdated }}</p>
+                        <p><strong>Booth No.: </strong>{{ .Booth.Bid }}</p>
+                        <p><strong>Booth Name: </strong>{{ .Booth.BoothName }}</p>
+                        <p><strong>BLO: </strong>{{ .Booth.BloName }}</p>
+                        <p><strong>BLO Contact: </strong>{{ .Booth.BloContact }}</p>
+                        <p><strong>Volunteer: </strong>{{ .DisplayData.VolunteerName }}</p>
+                        <p><strong>Volunteer Contact: </strong>{{ .DisplayData.VolunteerContact }}</p>
+                        <p><strong>Counter: </strong>{{ .Booth.Counter }}</p>
+                        <p><strong>Last Updated: </strong>{{ formatTime .Booth.LastUpdated }}</p>
                     </div>
                     {{ end }}
                 </div>
