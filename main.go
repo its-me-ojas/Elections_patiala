@@ -32,6 +32,7 @@ func main() {
 	r.HandleFunc("/admin/voter_req", handlers.HandleVoterReqStatus).Methods("POST")
 	r.HandleFunc("/admin/reset", handlers.HandleResetPasswordPage).Methods("GET")
 	r.HandleFunc("/admin/ro", handlers.HandleROPage).Methods("GET")
+	r.HandleFunc("/admin/ro/{cid}", handlers.HandleROUpdate).Methods("GET")
 	r.HandleFunc("/admin/reset", handlers.HandleResetPassword).Methods("POST")
 
 	corsMiddlerware := cors.Default()

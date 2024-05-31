@@ -50,6 +50,8 @@ func AuthenticateAdmin(contact, password string) (map[string]string, error) {
 	result["usertype"] = user.UserType
 
 	switch user.UserType {
+	case "ro":
+		result["cid"] = "0"
 	case "aro":
 		result["cid"] = user.CID
 	case "blo", "ps","vl":

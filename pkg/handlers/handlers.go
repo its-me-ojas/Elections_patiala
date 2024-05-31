@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/sessions"
 	"log"
 	"net/http"
+	"github.com/gorilla/mux"
 	"text/template"
 	"strconv"
 	"fmt"
@@ -58,27 +59,106 @@ func HandleROPage(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error getting session", err)
 		return
 	}
-
-	if session.Values["authenticated"] == true && session.Values["usertype"]=="ro" {
-		http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
+	
+	if session.Values["authenticated"] == true && session.Values["usertype"]!="ro" {
+		var errorMsg string
+		if val, ok := session.Values["error"].(string); ok {
+			errorMsg = val
+			delete(session.Values, "error")
+			session.Save(r, w)
+		}
+		tmpl := template.Must(template.ParseFiles("web/templates/login.html"))
+		tmpl.Execute(w, map[string]interface{}{
+			"Error": errorMsg,
+		})
 		return
 	} else {
-		http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
+		tmpl := template.Must(template.ParseFiles("web/templates/adminRO.html"))
+		tmpl.Execute(w,nil)
 		return
 	}
 
-	// var errorMsg string
-	// if val, ok := session.Values["error"].(string); ok {
-	// 	errorMsg = val
-	// 	delete(session.Values, "error")
-	// 	session.Save(r, w)
-	// }
+}
+func HandleROUpdate(w http.ResponseWriter, r *http.Request) {
+    session, err := store.Get(r, "session-name")
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    if _, ok := session.Values["usertype"].(string); ok && session.Values["usertype"] == "ro" {
+		
+        cid, ok := mux.Vars(r)["cid"]
+        if !ok {
+            session.Values["authenticated"] = false
+            session.Values["error"] = "Server Error. Session CID not Found. Contact Administrator"
+            session.Save(r, w)
+            http.Redirect(w, r, "/admin/login", http.StatusFound)
+            return
+        }
 
-	// tmpl := template.Must(template.ParseFiles("web/templates/login.html"))
-	// tmpl.Execute(w, map[string]interface{}{
-	// 	"Error": errorMsg,
-	// })
+        voterReqData, err := db.GetAllVoters(cid)
+        if err != nil {
+            handleServerError(w, r, session, "Server Error. Data for Constituency Not Available. Contact Administrator")
+            return
+        }
 
+        lastUpdatedBooths, err := db.FetchBoothsByCidAndTime(cid)
+        if err != nil {
+            handleServerError(w, r, session, "Server Error. Fetching Booths By Cid and Time not possible. Contact Administrator")
+            return
+        }
+
+        var voterDataWithBooth []map[string]interface{}
+        for _, voter := range voterReqData {
+            booth, err := db.GetBooth(voter.CID, voter.BID)
+            if err != nil {
+                handleServerError(w, r, session, "Server Error. Booth Data Not Available. Contact Administrator")
+                return
+            }
+            voterDataWithBooth = append(voterDataWithBooth, map[string]interface{}{
+                "Voter": voter,
+                "Booth": booth,
+            })
+        }
+
+        var lastUpdatedWithVolunteer []map[string]interface{}
+        for _, booth := range lastUpdatedBooths {
+            disp, err := db.GetDisplayData(booth.Cid, booth.Bid)
+            if err != nil {
+                handleServerError(w, r, session, "Server Error. Booth Data Not Available. Contact Administrator")
+                return
+            }
+            lastUpdatedWithVolunteer = append(lastUpdatedWithVolunteer, map[string]interface{}{
+                "Booth":        booth,
+                "DisplayData":  disp,
+            })
+        }
+
+        tmpl := template.Must(template.New("adminARO.html").Funcs(template.FuncMap{
+			"formatTime": formatTime,
+		}).ParseFiles("web/templates/adminARO.html"))
+
+        err = tmpl.Execute(w, map[string]interface{}{
+            "VoterDataWithBooth": voterDataWithBooth,
+            "LastUpdatedBooths":  lastUpdatedWithVolunteer,
+        })
+        if err != nil {
+            handleServerError(w, r, session, "Server Error. RO Dashboard Rendering Failed. Contact Administrator")
+            return
+        }
+    } else {
+        session.Values["authenticated"] = false
+        session.Values["error"] = "Unauthorized Access. Only RO is allowed."
+        session.Save(r, w)
+        http.Redirect(w, r, "/admin/login", http.StatusFound)
+    }
+}
+
+func handleServerError(w http.ResponseWriter, r *http.Request, session *sessions.Session, errorMsg string) {
+    session.Values["authenticated"] = false
+    session.Values["error"] = errorMsg
+    session.Save(r, w)
+    http.Redirect(w, r, "/admin/login", http.StatusFound)
 }
 func HandleResetPasswordPage(w http.ResponseWriter, r *http.Request){
 	session, err := store.Get(r, "session-name")
@@ -143,13 +223,15 @@ func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/admin/login", http.StatusFound)
 		return
 	}
-
 	session, _ := store.Get(r, "session-name")
 	session.Values["error"] = ""
 	session.Values["authenticated"] = true
 	session.Values["usertype"] = userInfo["usertype"]
-
-	if userInfo["usertype"] == "aro" {
+	if userInfo["usertype"] == "ro" {
+		session.Save(r, w)
+		http.Redirect(w, r, "/admin/ro", http.StatusFound)
+		return
+	} else if userInfo["usertype"] == "aro" {
 		session.Values["cid"] = userInfo["cid"]
 	} else {
 		session.Values["cid"] = userInfo["cid"]
@@ -167,13 +249,16 @@ func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
 	}
 	
 }
-
 func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 
 	session, err := store.Get(r, "session-name")
 	if err != nil || session.Values["authenticated"] != true {
 		http.Redirect(w, r, "/admin/login", http.StatusFound)
 		return
+	}
+	if session.Values["usertype"] == "ro" {
+		http.Redirect(w, r, "/admin/ro", http.StatusFound)
+			return	
 	}
 	if session.Values["usertype"] == "blo" {
 		cid, ok := session.Values["cid"].(string)
