@@ -32,8 +32,6 @@ type DisplayData struct {
 	VolunteerContact       string             `bson:"volunteer_contact"`
 	MicroObserverName      string             `bson:"micro_observer_name"`
 	MicroObserverContact   string             `bson:"micro_observer_contact"`
-	PollingStaff           []Staff            `bson:"polling_staff"`
-	PoliceStaff            []Staff            `bson:"police_staff"`
 }
 
 type Staff struct {

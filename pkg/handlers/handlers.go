@@ -129,8 +129,7 @@ func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
 
 	session.Save(r, w)
 	if contact==password{
-		// fmt.Println(contact)
-		// fmt.Println(password)
+
 		session.Values["contact"] = contact
 		session.Save(r, w)
 		http.Redirect(w, r, "/admin/reset", http.StatusFound)
@@ -174,10 +173,31 @@ func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/admin/login", http.StatusFound)
 			return		
 		}
+		staff, err := db.GetAllStaffBid(cid, bid)
+		if err != nil {
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Failed to recieve Staff. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
+		}
+		var pollingStaff []db.User
+		var policeStaff []db.User
+
+		for _, s := range staff {
+			if s.BoothName == "polling" {
+				pollingStaff = append(pollingStaff, s)
+			} else if s.BoothName == "police" {
+				policeStaff = append(policeStaff, s)
+			}
+		}
+
 		tmpl := template.Must(template.ParseFiles("web/templates/adminBLO.html"))
 		err = tmpl.Execute(w, map[string]interface{}{
 			"Booth":        booth,
 			"DisplayData":  display_data,
+			"PollingStaff": pollingStaff,
+			"PoliceStaff":  policeStaff,
 		})
 		if err != nil {
 			session.Values["authenticated"] = false
@@ -207,10 +227,31 @@ func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/admin/login", http.StatusFound)
 			return		
 		}
+		staff, err := db.GetAllStaffBid(cid, bid)
+		if err != nil {
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Failed to recieve Staff. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
+		}
+		var pollingStaff []db.User
+		var policeStaff []db.User
+
+		for _, s := range staff {
+			if s.BoothName == "polling" {
+				pollingStaff = append(pollingStaff, s)
+			} else if s.BoothName == "police" {
+				policeStaff = append(policeStaff, s)
+			}
+		}
+
 		tmpl := template.Must(template.ParseFiles("web/templates/adminPS.html"))
 		err = tmpl.Execute(w, map[string]interface{}{
-			"Booth":       booth,
-			"DisplayData": display_data,
+			"Booth":        booth,
+			"DisplayData":  display_data,
+			"PollingStaff": pollingStaff,
+			"PoliceStaff":  policeStaff,
 		})
 		if err != nil {
 			session.Values["authenticated"] = false
@@ -328,10 +369,30 @@ func HandleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 				"Booth": booth,
 			})
 		}
+		staff, err := db.GetAllStaffBid(cid, bid)
+		if err != nil {
+			session.Values["authenticated"] = false
+			session.Values["error"] = "Server Error. Failed to recieve Staff. Contact Administrator"
+			session.Save(r, w)
+			http.Redirect(w, r, "/admin/login", http.StatusFound)
+			return		
+		}
+		var pollingStaff []db.User
+		var policeStaff []db.User
+
+		for _, s := range staff {
+			if s.BoothName == "polling" {
+				pollingStaff = append(pollingStaff, s)
+			} else if s.BoothName == "police" {
+				policeStaff = append(policeStaff, s)
+			}
+		}
 		tmpl := template.Must(template.ParseFiles("web/templates/adminVolunteer.html"))
 		err = tmpl.Execute(w, map[string]interface{}{
 			"Booth":        booth,
 			"DisplayData":  display_data,
+			"PollingStaff": pollingStaff,
+			"PoliceStaff":  policeStaff,
 			"voterDataWithBooth": voterDataWithBooth,
 		})
 		if err != nil {

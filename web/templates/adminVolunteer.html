@@ -124,13 +124,13 @@
                         }}</span></p>
                 <p class="text-gray-600 mt-4"><strong>Polling Staff:</strong></p>
                 <ul class="text-gray-600 list-disc list-inside">
-                    {{ range .DisplayData.PollingStaff }}
+                    {{ range .PollingStaff }}
                     <li>{{ .Name }} - {{ .Contact }}</li>
                     {{ end }}
                 </ul>
                 <p class="text-gray-600 mt-4"><strong>Police Staff:</strong></p>
                 <ul class="text-gray-600 list-disc list-inside">
-                    {{ range .DisplayData.PoliceStaff }}
+                    {{ range .PoliceStaff }}
                     <li>{{ .Name }} - {{ .Contact }}</li>
                     {{ end }}
                 </ul>

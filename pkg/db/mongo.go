@@ -252,3 +252,28 @@ func FetchBoothsByCidAndTime(cid string) ([]Booth, error) {
 
 	return booths, nil
 }
+func GetAllStaffBid(cid string, bid string) ([]User, error) {
+	var users []User
+
+	filter := bson.M{"cid": cid, "bid": bid}
+	cursor, err := usersCollection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	for cursor.Next(context.Background()) {
+		var user User
+		err := cursor.Decode(&user)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
